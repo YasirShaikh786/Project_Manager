@@ -1,42 +1,68 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useProfileStore } from "../../services/api.js";
+import toast from "react-hot-toast";
 
-const ProfileInfo = ({ onSaveProfile }) => {
-  const [userName, setUserName] = useState("");
-  const [collegeName, setCollegeName] = useState("");
-  const [designation, setDesignation] = useState("");
-  const [phoneNo, setPhoneNo] = useState("");
-  const [gender, setGender] = useState("");
-  const [nationality, setNationality] = useState("");
+const ProfilePage = () => {
   const navigate = useNavigate();
+  const { updateProfile, fetchProfile,isLoading } = useProfileStore();
+  const [profileData, setProfileData] = useState({
+    username: "",
+    collegeName: "",
+    designation: "",
+    phoneNo: "",
+    gender: "",
+    nationality: "",
+  });
 
   useEffect(() => {
-    // Load profile data if it exists
-    const profile = JSON.parse(localStorage.getItem("profile"));
-    if (profile) {
-      setUserName(profile.userName);
-      setCollegeName(profile.collegeName);
-      setDesignation(profile.designation);
-      setPhoneNo(profile.phoneNo);
-      setGender(profile.gender);
-      setNationality(profile.nationality);
-    }
-  }, []);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const profileData = {
-      userName,
-      collegeName,
-      designation,
-      phoneNo,
-      gender,
-      nationality,
+    const getProfileData = async () => {
+      try {
+        const response = await fetchProfile();
+        if (response.data) {
+          setProfileData({
+            username: response.data.username || "",
+            collegeName: response.data.collegeName || "",
+            designation: response.data.designation || "",
+            phoneNo: response.data.phoneNo || "",
+            gender: response.data.gender || "",
+            nationality: response.data.nationality || "",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
     };
-    localStorage.setItem("profile", JSON.stringify(profileData));
-    onSaveProfile(profileData);
-    navigate("/home"); // Redirect to home page after saving profile
+
+    getProfileData();
+  }, [fetchProfile]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await updateProfile(profileData);
+      toast.success("Profile updated successfully!");
+      navigate("/home");
+    } catch (error) {
+      toast.error(error.message || "Failed to update profile");
+    }
   };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProfileData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div
@@ -46,54 +72,62 @@ const ProfileInfo = ({ onSaveProfile }) => {
       }}
     >
       <div className="bg-white p-8 rounded-lg shadow-lg bg-opacity-90">
-        <h2 className="text-2xl font-bold mb-6 text-center">Profile Information</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">
+          Profile Information
+        </h2>
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">User Name</label>
+              <label className="block text-sm font-medium mb-2">Username</label>
               <input
-                type="text"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
+                name="username"
+                value={profileData.username}
+                onChange={handleChange}
                 className="w-full px-3 py-2 border rounded-lg"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">College Name</label>
+              <label className="block text-sm font-medium mb-2">
+                College Name
+              </label>
               <input
-                type="text"
-                value={collegeName}
-                onChange={(e) => setCollegeName(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg"
+                name="collegeName"
+                value={profileData.collegeName}
+                onChange={handleChange}
                 required
+                className="w-full px-3 py-2 border rounded-lg"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Designation</label>
+              <label className="block text-sm font-medium mb-2">
+                Designation
+              </label>
               <input
-                type="text"
-                value={designation}
-                onChange={(e) => setDesignation(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg"
+                name="designation"
+                value={profileData.designation}
+                onChange={handleChange}
                 required
+                className="w-full px-3 py-2 border rounded-lg"
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Phone No</label>
               <input
-                type="text"
-                value={phoneNo}
-                onChange={(e) => setPhoneNo(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg"
+                name="phoneNo"
+                type="tel"
+                value={profileData.phoneNo}
+                onChange={handleChange}
                 required
+                className="w-full px-3 py-2 border rounded-lg"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Gender</label>
+              <label className="text-sm font-medium">Gender</label>
               <select
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
+                name="gender"
+                value={profileData.gender} // Controlled component
+                onChange={handleChange} // Ensure this is `onChange`
                 className="w-full px-3 py-2 border rounded-lg"
                 required
               >
@@ -104,21 +138,24 @@ const ProfileInfo = ({ onSaveProfile }) => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Nationality</label>
+              <label className="block text-sm font-medium mb-2">
+                Nationality
+              </label>
               <input
-                type="text"
-                value={nationality}
-                onChange={(e) => setNationality(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg"
+                name="nationality"
+                value={profileData.nationality}
+                onChange={handleChange}
                 required
+                className="w-full px-3 py-2 border rounded-lg"
               />
             </div>
           </div>
           <button
             type="submit"
-            className="w-full mt-6 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+            disabled={isLoading}
+            className="w-full mt-6 bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50"
           >
-            Save Profile
+            {isLoading ? "Saving..." : "Save Profile"}
           </button>
         </form>
       </div>
@@ -126,4 +163,4 @@ const ProfileInfo = ({ onSaveProfile }) => {
   );
 };
 
-export default ProfileInfo;
+export default ProfilePage;
