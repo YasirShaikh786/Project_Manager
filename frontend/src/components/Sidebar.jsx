@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../services/api.js";
+import { useAuthStore , uploadExcel , downloadExcel} from "../../services/api.js";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const { logout } = useAuthStore();
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showDownloadDialog, setShowDownloadDialog] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [division, setDivision] = useState("");
 
   const handleLogout = () => {
@@ -16,6 +17,62 @@ const Sidebar = () => {
 
   const handleProfileClick = () => {
     navigate("/profile");
+  };
+
+
+
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      console.log('File selected:', file.name);
+    }
+  };
+
+  // Handle file upload
+  const handleUpload = async () => {
+    if (!selectedFile) {
+      alert('Please select a file to upload.');
+      return;
+    }
+    try {
+      const response = await uploadExcel(selectedFile);
+      console.log('Upload successful:', response.data);
+      alert('File uploaded successfully!');
+      setShowUploadDialog(false); // Close the dialog after successful upload
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Failed to upload file. Please try again.');
+    }
+  };
+
+
+
+  const handleDownload = async () => {
+    setShowDownloadDialog(false);
+    try {
+      const response = await downloadExcel(division);
+  
+      // Create a blob from the response data
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+  
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+  
+      // Create an anchor element to trigger the download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `projects_${division || 'all'}.xlsx`; // Set the filename
+      document.body.appendChild(a);
+      a.click(); // Trigger the download
+  
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -112,40 +169,49 @@ const Sidebar = () => {
 
    {/* Upload Dialog */}
 {showUploadDialog && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-    <div className="bg-white p-8 rounded-xl shadow-2xl w-11/12 max-w-md transform transition-all duration-300 ease-in-out hover:scale-105">
-      {/* Header */}
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Upload Excel File</h2>
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white p-8 rounded-xl shadow-2xl w-11/12 max-w-md transform transition-all duration-300 ease-in-out hover:scale-105">
+            {/* Header */}
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Upload Excel File</h2>
 
-      {/* Drag and Drop Area */}
-      <div className="border-2 border-dashed border-gray-300 p-6 text-center rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
-        <p className="text-gray-600">Drag and drop an Excel file here</p>
-        <p className="text-sm text-gray-400 mt-1">or</p>
-        <input
-          type="file"
-          accept=".xlsx, .xls"
-          className="mt-4 opacity-0 absolute w-0 h-0"
-          id="fileInput"
-          onChange={(e) => console.log("File selected:", e.target.files[0]?.name)}
-        />
-        <label
-          htmlFor="fileInput"
-          className="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded-lg cursor-pointer hover:bg-blue-600 transition-colors duration-200"
-        >
-          Browse Files
-        </label>
-      </div>
+            {/* Drag and Drop Area */}
+            <div className="border-2 border-dashed border-gray-300 p-6 text-center rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+              <p className="text-gray-600">Drag and drop an Excel file here</p>
+              <p className="text-sm text-gray-400 mt-1">or</p>
+              <input
+                type="file"
+                accept=".xlsx, .xls"
+                className="mt-4 opacity-0 absolute w-0 h-0"
+                id="fileInput"
+                onChange={handleFileChange}
+              />
+              <label
+                htmlFor="fileInput"
+                className="mt-4 inline-block bg-blue-500 text-white py-2 px-4 rounded-lg cursor-pointer hover:bg-blue-600 transition-colors duration-200"
+              >
+                Browse Files
+              </label>
+            </div>
 
-      {/* Close Button */}
-      <button
-        onClick={() => setShowUploadDialog(false)}
-        className="mt-6 w-full bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-200"
-      >
-        Close
-      </button>
-    </div>
-  </div>
-)}
+            {/* Upload Button */}
+            <button
+              onClick={handleUpload}
+              className="mt-6 w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors duration-200"
+            >
+              Upload
+            </button>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setShowUploadDialog(false)}
+              className="mt-4 w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors duration-200"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    
 
       {/* Download Dialog */}
 {showDownloadDialog && (
@@ -162,20 +228,23 @@ const Sidebar = () => {
           value={division}
           onChange={(e) => setDivision(e.target.value)}
           list="divisions"
-          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full p-3 border border-gray-300 text-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Type or select a division"
         />
         <datalist id="divisions">
-          <option value="Division A" />
-          <option value="Division B" />
-          <option value="Division C" />
-          <option value="Division D" />
+          <option value="A" />
+          <option value="B" />
+          <option value="C" />
+          <option value="D" />
+          <option value="E" />
+          <option value="F" />
+          <option value="G" />
         </datalist>
       </div>
 
       {/* Download Button */}
       <button
-        onClick={() => console.log("Downloading data for division:", division)}
+        onClick={() => handleDownload()}
         className="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors duration-200"
       >
         Download Excel File

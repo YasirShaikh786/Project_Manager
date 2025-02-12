@@ -26,6 +26,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@types/multer": "^1.4.12",
     "nodemon": "^3.1.9"
   }
 }

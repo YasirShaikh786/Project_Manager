@@ -1,26 +1,9 @@
-// server/models/Project.js
 import mongoose from "mongoose";
 
-const teamMemberSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  rollNo: {
-    type: String,
-    required: true,
-    trim: true
-  }
-});
+
 
 const projectSchema = new mongoose.Schema({
-  projectId: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
-  },
+  
   projectName: {
     type: String,
     required: true,
@@ -37,7 +20,7 @@ const projectSchema = new mongoose.Schema({
   },
   endDate: {
     type: Date,
-    required: true
+  
   },
   description: {
     type: String,
@@ -46,6 +29,12 @@ const projectSchema = new mongoose.Schema({
   division: {
     type: String,
     trim: true
+  },
+  status: { // Status of the project
+    type: String,
+    enum: ['Not Started', 'In Progress', 'Completed'],
+    default: 'Not Started',
+    required: true
   },
   leader: {
     type: String,
@@ -57,7 +46,16 @@ const projectSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  teamMembers: [teamMemberSchema],
+  members: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  rollNo : {
+    type: String,
+    required: true,
+    trim: true
+  },
   progress: {
     type: Number,
     default: 0,
@@ -81,15 +79,6 @@ const projectSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate project ID before saving
-projectSchema.pre('save', async function(next) {
-  if (!this.projectId) {
-    const date = new Date();
-    const year = date.getFullYear().toString().slice(-2);
-    const count = await mongoose.model('Project').countDocuments();
-    this.projectId = `PRJ${year}${(count + 1).toString().padStart(4, '0')}`;
-  }
-  next();
-});
 
-export default mongoose.model('Project', projectSchema);
+
+export const Project = mongoose.model("Project", projectSchema);

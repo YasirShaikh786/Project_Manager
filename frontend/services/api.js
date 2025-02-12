@@ -216,9 +216,11 @@ export const downloadExcel = (division) =>
 
 //Project API
 
-export const createProject = async (projectData) => {
+export const addProject = async (newproject) => {
   try {
-    const response = await api.post(`/projects`, projectData);
+    console.log("newproject", newproject);
+    const response = await api.post(`/projects/addproject`, newproject);
+    console.log("Full API Response:", response); // Logs the full response object
     return response.data.data;
   } catch (error) {
     console.error(
@@ -231,27 +233,15 @@ export const createProject = async (projectData) => {
 
 export const getProjects = async () => {
   try {
-    const response = await api.get(`/projects`);
-    return response.data.data;
+    const response = await api.get(`/projects/getProjects`);
+    console.log("Full API Response:", response); // Logs the full response object
+    return response.data;
   } catch (error) {
     console.error(
       "Error fetching projects:",
       error.response?.data?.error || error.message
     );
     throw new Error(error.response?.data?.error || "Failed to fetch projects");
-  }
-};
-
-export const getProjectById = async (id) => {
-  try {
-    const response = await api.get(`/projects/${id}`);
-    return response.data.data;
-  } catch (error) {
-    console.error(
-      "Error fetching project:",
-      error.response?.data?.error || error.message
-    );
-    throw new Error(error.response?.data?.error || "Failed to fetch project");
   }
 };
 
@@ -296,7 +286,6 @@ export const searchProjects = async (searchTerm) => {
   }
 };
 
-
 export const useProfileStore = create((set) => ({
   isLoading: false,
   error: null,
@@ -339,71 +328,5 @@ export const useProfileStore = create((set) => ({
   }
 }));
 
-// Profile API
-
-// export const fetchProfile = async () => {
-// 	const token = localStorage.getItem("token"); // Retrieve token from storage
-
-// 	if (!token) {
-// 	  console.error("No token found in localStorage. Please log in.");
-// 	  throw new Error("No token found. Please log in.");
-// 	}
-
-// 	console.log("Auth token Before Request:", token); // Debugging
-
-// 	try {
-// 	  const response = await api.get(`/users/profile`, {
-// 		headers: {
-// 		  Authorization: `Bearer ${token}`, // Ensure it's in the right format
-// 		},
-// 		withCredentials: true, // If your backend uses cookies
-// 	  });
-
-// 	  console.log("Auth token After Request:", token); // Debugging
-// 	  return response.data;
-// 	} catch (error) {
-// 	  console.error("Error fetching profile:", error);
-
-// 	  if (error.response?.status === 401) {
-// 		// Handle unauthorized error - maybe redirect to login
-// 		throw new Error("Please login again to continue.");
-// 	  }
-
-// 	  throw new Error("Failed to fetch profile. Please try again later.");
-// 	}
-//   };
-
-//   // Save Profile
-//   export const saveProfile = async (profileData) => {
-// 	const token = localStorage.getItem("token"); // Retrieve token from storage
-
-// 	if (!token) {
-// 	  console.error("No token found in localStorage. Please log in.");
-// 	  throw new Error("No token found. Please log in.");
-// 	}
-
-// 	try {
-// 	  const response = await api.put(`/users/profile`,
-// 		profileData,
-// 		{
-// 		  headers: {
-// 			Authorization: `Bearer ${token}`,
-// 		  },
-// 		  withCredentials: true, // If your backend uses cookies
-// 		}
-// 	  );
-
-// 	  return response.data;
-// 	} catch (error) {
-// 	  console.error("Error saving profile:", error);
-
-// 	  if (error.response?.status === 401) {
-// 		// Handle unauthorized error - maybe redirect to login
-// 		throw new Error("Please login again to continue.");
-// 	  }
-
-// 	  throw new Error("Failed to save profile. Please try again later.");
-// 	}
-//   };
 
 export default api;
