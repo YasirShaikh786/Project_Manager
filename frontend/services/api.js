@@ -1,5 +1,6 @@
 import axios from "axios";
 import { create } from "zustand";
+import {jwtDecode} from "jwt-decode";
 
 const API_URL = "http://localhost:5000/api"; // Backend URL
 
@@ -19,7 +20,6 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log("Request Config:", config); // Debugging: Log the request config
     return config;
   },
   (error) => {
@@ -44,15 +44,15 @@ export const useAuthStore = create((set) => ({
         { withCredentials: true }
       );
 
-      console.log("Full response:", response); // Debugging
-      console.log("Received token:", response.data.token); // Check if the token exists
+      // console.log("Full response:", response); // Debugging
+      // console.log("Received token:", response.data.token); // Check if the token exists
 
       if (!response.data.token) {
         throw new Error("token missing in response!");
       }
 
       localStorage.setItem("token", response.data.token); // ✅ Ensure correct key name
-      console.log("Stored token:", localStorage.getItem("token")); // Debugging
+      // console.log("Stored token:", localStorage.getItem("token")); // Debugging
 
       set({
         user: response.data.user,
@@ -73,15 +73,25 @@ export const useAuthStore = create((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await api.post("/auth/login", { email, password });
-
+      // console.log("Full response:", response); // Debugging
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
-        set({
+        // console.log("Token stored in local storageis:", response.data.token);
+
+        // Decode token to get userId
+        const decoded = jwtDecode(response.data.token);
+        const userId = decoded.user_id; // Extract user_id from the token
+        localStorage.setItem("userId", userId); // Save userId to localStorage
+        // console.log("Logged in successfully. User ID:", userId);
+
+        // Store user data in Zustand
+        set({                          // ✅ Use set() to update state
           user: response.data.user,
           isAuthenticated: true,
           error: null,
           isLoading: false,
         });
+
       }
     } catch (error) {
       set({
@@ -97,6 +107,7 @@ export const useAuthStore = create((set) => ({
     try {
       await api.post("/auth/logout");
       localStorage.removeItem("token");
+      localStorage.removeItem("userId"); // Remove userId on logout
       set({
         user: null,
         isAuthenticated: false,
@@ -115,7 +126,7 @@ export const useAuthStore = create((set) => ({
       const response = await axios.post(`${API_URL}/auth/verify-email`, {
         code,
       });
-      console.log("response", response);
+      // console.log("response", response);
 
       set({
         user: response.data.user,
@@ -135,7 +146,7 @@ export const useAuthStore = create((set) => ({
     set({ isCheckingAuth: true });
     try {
       const token = localStorage.getItem("token");
-
+  
       if (!token) {
         set({
           user: null,
@@ -144,18 +155,44 @@ export const useAuthStore = create((set) => ({
         });
         return;
       }
-
-      const response = await api.get("/auth/check-auth");
-
+  
+      // Check if token is expired
+      const decoded = jwtDecode(token);
+      const isExpired = decoded.exp * 1000 < Date.now(); // Check if token is expired
+      if (isExpired) {
+        console.log("Token is expired");
+        localStorage.removeItem("token"); // Clear expired token
+        set({
+          user: null,
+          isAuthenticated: false,
+          isCheckingAuth: false,
+        });
+        return;
+      }
+  
+      // Send request to check-auth endpoint
+      const response = await api.get("/auth/check-auth", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
       if (response.data.success) {
         set({
           user: response.data.user,
           isAuthenticated: true,
           isCheckingAuth: false,
         });
+      } else {
+        localStorage.removeItem("token"); // Clear invalid token
+        set({
+          user: null,
+          isAuthenticated: false,
+          isCheckingAuth: false,
+        });
       }
     } catch (error) {
-      localStorage.removeItem("token");
+      localStorage.removeItem("token"); // Clear token on error
       set({
         user: null,
         isAuthenticated: false,
@@ -171,7 +208,7 @@ export const useAuthStore = create((set) => ({
       const response = await axios.post(`${API_URL}/auth/forgot-password`, {
         email,
       });
-      console.log("response", response);
+      // console.log("response", response);
       set({ message: response.data.message, isLoading: false });
     } catch (error) {
       set({
@@ -202,8 +239,11 @@ export const useAuthStore = create((set) => ({
 
 // Excel API
 export const uploadExcel = (file) => {
+
+  const userId = localStorage.getItem("userId"); // Get userId from localStorage
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("userId", userId); // Add userId to the FormData
   return api.post("/projects/upload", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
@@ -218,9 +258,10 @@ export const downloadExcel = (division) =>
 
 export const addProject = async (newproject) => {
   try {
-    console.log("newproject", newproject);
-    const response = await api.post(`/projects/addproject`, newproject);
-    console.log("Full API Response:", response); // Logs the full response object
+    // console.log("newproject", newproject);
+    const userId = localStorage.getItem("userId"); // Get userId from localStorage
+    const response = await api.post(`/projects/addproject`, { ...newproject, userId });
+    // console.log("Full API Response:", response); // Logs the full response object
     return response.data.data;
   } catch (error) {
     console.error(
@@ -233,8 +274,8 @@ export const addProject = async (newproject) => {
 
 export const getProjects = async () => {
   try {
-    const response = await api.get(`/projects/getProjects`);
-    console.log("Full API Response:", response); // Logs the full response object
+    const userId = localStorage.getItem("userId"); // Get userId from localStorage
+    const response = await api.get("/projects/getProjects", { params: { userId } });
     return response.data;
   } catch (error) {
     console.error(
@@ -244,6 +285,7 @@ export const getProjects = async () => {
     throw new Error(error.response?.data?.error || "Failed to fetch projects");
   }
 };
+
 
 export const updateProject = async (id, projectData) => {
   try {
@@ -296,7 +338,7 @@ export const useProfileStore = create((set) => ({
     try {
       
       const response = await api.get('/users/profile');
-      console.log("response", response.data);
+      // console.log("response", response.data);
       
       set({ profile: response.data, isLoading: false });
       return response.data;
@@ -312,9 +354,9 @@ export const useProfileStore = create((set) => ({
   updateProfile: async (profileData) => {
     set({ isLoading: true, error: null });
     try {
-      console.log("profileData", profileData);
+      // console.log("profileData", profileData);
       const response = await api.post('/users/profile', profileData);
-      console.log("nakjdfakjsda", response.data);
+      // console.log("response", response.data);
       
       set({ profile: response.data, isLoading: false });
       return response.data;

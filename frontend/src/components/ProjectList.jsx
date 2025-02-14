@@ -12,24 +12,22 @@ const ProjectList = () => {
   const fetchProjects = async () => {
     try {
       const response = await getProjects();
-      console.log("Full response:", response);
-      console.log("Response data:", response.data);
   
       if (response.data && Array.isArray(response.data)) {
-        setProjects(response.data);  
+        setProjects(response.data);
         setFilteredProjects(response.data);
         
-        console.log("First Project ID:", response.data[0]?._id); // ✅ Ensure _id exists before accessing
       }
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
   
-
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }); 
+  
+  
 
   // Handle project deletion
   const handleDelete = async (_id) => {
@@ -45,13 +43,14 @@ const ProjectList = () => {
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
     setSearchQuery(query);
-
+  
     setFilteredProjects(
       query === ""
-        ? projects
+        ? projects // Only filter the user's projects
         : projects.filter((p) => p.department?.toLowerCase().includes(query))
     );
   };
+  
 
   // Handle project edit submission
   const handleSaveEdit = async () => {
@@ -64,7 +63,6 @@ const ProjectList = () => {
     }
   };
 
-  console.log("Filtered Projects: ", filteredProjects);
   return (
     <div>
       {/* Search Bar */}

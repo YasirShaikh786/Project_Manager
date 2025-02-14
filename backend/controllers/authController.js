@@ -8,7 +8,7 @@ import {
 	sendResetSuccessEmail,
 	sendVerificationEmail,
 
-} from "../mailtrap/email.js";
+} from "../email/email.js";
 import { User } from "../models/User.js";
 
 
@@ -31,7 +31,7 @@ export const signup = async (req, res) => {
 
         const hashedPassword = await bcryptjs.hash(password, 10);
         const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
-		console.log("verificationToken", verificationToken);
+		// console.log("verificationToken", verificationToken);
 		
 
         const user = new User({
@@ -48,7 +48,7 @@ export const signup = async (req, res) => {
         const token = generateTokenAndSetCookie(res, user._id);
 		// console.log("Generated Token:", token); // Debugging
 
-        // await sendVerificationEmail(user.email, verificationToken);
+        await sendVerificationEmail(user.email, verificationToken);
 
         res.status(201).json({
             success: true,
@@ -110,12 +110,13 @@ export const login = async (req, res) => {
 	  if (!isPasswordValid) {
 		return res.status(400).json({ success: false, message: "Invalid credentials" });
 	  }
-  
+	//   console.log("user", user._id);
+
 	  const token = generateTokenAndSetCookie(res, user._id); // Generate token
-  
+
 	  user.lastLogin = new Date();
 	  await user.save();
-  
+
 	  res.status(200).json({
 		success: true,
 		message: "Logged in successfully",
@@ -155,8 +156,7 @@ export const forgotPassword = async (req, res) => {
 		await user.save();
 
 		// send email 
-		console.log("process.env.CLIENT_URL", process.env.CLIENT_URL);
-		// await sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
+		await sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
 
 		res.status(200).json({ success: true, message: "Password reset link sent to your email" });
 	} catch (error) {
@@ -187,7 +187,7 @@ export const resetPassword = async (req, res) => {
 		user.resetPasswordExpiresAt = undefined;
 		await user.save();
 
-		// await sendResetSuccessEmail(user.email);
+		await sendResetSuccessEmail(user.email);
 
 		res.status(200).json({ success: true, message: "Password reset successful" });
 	} catch (error) {
@@ -198,7 +198,10 @@ export const resetPassword = async (req, res) => {
 
 export const checkAuth = async (req, res) => {
     try {
-        const user = await User.findById(req.userId).select("-password");
+        // console.log("req.user in checkAuth:", req.user); // Debugging
+        const user = await User.findById(req.user.id).select("-password"); // Use `req.user.id`
+        // console.log("user", user);
+
         if (!user) {
             return res.status(401).json({ 
                 success: false, 

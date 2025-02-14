@@ -1,5 +1,6 @@
 import express from "express";
 
+import { projectTokenMiddleware } from "../middleware/projectTokenMiddleware.js";
 import { uploadExcel, downloadExcel, getProjects,  addProject, updateProject, deleteProject } from "../controllers/projectController.js";
 import multer from 'multer';
 
@@ -14,8 +15,8 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.post('/upload', upload.single('file'), uploadExcel);
 router.get("/download", downloadExcel);
 
-router.get("/getProjects",getProjects)
-router.post('/addproject',addProject);
+router.get("/getProjects",projectTokenMiddleware, getProjects)
+router.post('/addproject',projectTokenMiddleware, addProject);
 
 router.put("/:id",updateProject)
 router.delete("/:id", deleteProject);

@@ -1,22 +1,13 @@
-import React from "react";
-import { useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Home from "./pages/Home";
 import ProfileInfo from "./pages/ProfileInfo";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage.jsx";
-
-import LoadingSpinner from "./components/LoadingSpinner.jsx";
-
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import LoadingSpinner from "./components/LoadingSpinner";
 import { useAuthStore } from "../services/api.js";
 
 const ProtectedRoute = ({ children }) => {
@@ -46,12 +37,13 @@ const RedirectAuthenticatedUser = ({ children }) => {
 
   return children;
 };
+
 const App = () => {
   const { checkAuth } = useAuthStore();
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    checkAuth(); // Check authentication state on app load
+  }, [checkAuth]);
 
   return (
     <Router>
@@ -82,15 +74,6 @@ const App = () => {
               </RedirectAuthenticatedUser>
             }
           />
-
-          <Route
-            path="/reset-password:token"
-            element={
-              <RedirectAuthenticatedUser>
-                <ResetPasswordPage />
-              </RedirectAuthenticatedUser>
-            }
-          />
           <Route
             path="/reset-password/:token"
             element={
@@ -99,7 +82,6 @@ const App = () => {
               </RedirectAuthenticatedUser>
             }
           />
-
           <Route
             path="/home"
             element={
@@ -116,7 +98,6 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/"
             element={
@@ -125,7 +106,7 @@ const App = () => {
               </ProtectedRoute>
             }
           />
-          {/* catch all routes */}
+          {/* Catch-all route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

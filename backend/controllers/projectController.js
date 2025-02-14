@@ -28,20 +28,23 @@ export const uploadExcel = async (req, res) => {
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = xlsx.utils.sheet_to_json(worksheet);
 
-    console.log('Excel data:', data);
+    // console.log('Excel data:', data);
 
-    // Transform data to exclude unwanted fields
+    // Get userId from the request body
+    const userId = req.body.userId;
+
+    // Transform data to exclude unwanted fields and add userId
     const projectsToSave = data.map(row => {
       const { _id, createdAt, updatedAt, __v, ...rest } = row;
-      return rest;
+      return { ...rest, userId }; // Add userId to each project
     });
 
-    console.log('Projects to save:', projectsToSave);
+    // console.log('Projects to save:', projectsToSave);
 
     // Save the data to the database
     const savedProjects = await Project.insertMany(projectsToSave);
 
-    console.log('Projects saved successfully:', savedProjects);
+    // console.log('Projects saved successfully:', savedProjects);
 
     res.status(201).json({
       message: 'Projects uploaded successfully',
@@ -84,7 +87,7 @@ export const downloadExcel = async (req, res) => {
 
     // 5. Validate data
     if (!projects || projects.length === 0) {
-      throw new Error('No projects found for the specified division');
+      return res.status(404).json({ error: 'No projects found' });
     }
 
     // 6. Transform data for Excel (exclude unwanted fields)
@@ -156,37 +159,28 @@ export const downloadExcel = async (req, res) => {
 
 export const addProject = async (req, res) => {
   try {
-    // Create and save new project from request body
-    const project = new Project(req.body);
+    const { userId, ...projectData } = req.body;
+    const project = new Project({ ...projectData, userId });
     await project.save();
 
-    res.status(201).json({
-      success: true,
-      data: project
-    });
+    res.status(201).json({ success: true, data: project });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error.message
-    });
+    res.status(400).json({ success: false, error: error.message });
   }
 };
+
 
 export const getProjects = async (req, res) => {
   try {
-    const projects = await Project.find().sort({ createdAt: -1 });
-    res.status(200).json({
-      success: true,
-      count: projects.length,
-      data: projects
-    });
+    const { userId } = req.query;
+    const projects = await Project.find({ userId }).sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, count: projects.length, data: projects });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
+
 
 
 export const updateProject = async (req, res) => {
