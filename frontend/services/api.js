@@ -2,7 +2,7 @@ import axios from "axios";
 import { create } from "zustand";
 import {jwtDecode} from "jwt-decode";
 
-const API_URL = "https://project-manager-backend-hl7v.onrender.com"; // Backend URL
+const API_URL = "https://project-manager-backend-daaq.onrender.com/api"; // Backend URL
 
 // Set up Axios instance
 const api = axios.create({

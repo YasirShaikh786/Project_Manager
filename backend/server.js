@@ -3,6 +3,7 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import path from "path";
 
 import {connectDb}from "./db/connectDatabase.js";
 
@@ -14,6 +15,8 @@ import userRoutes from "./routes/userRoutes.js";
 dotenv.config();	
 
 const app = express();
+const PORT = process.env.PORT || 5000;
+const __dirname = path.resolve();
 
 // Middleware
 app.use(express.json());
@@ -29,7 +32,7 @@ app.use(
 
   app.use(bodyParser.urlencoded({ extended: true }));
 
-const PORT = process.env.PORT || 5000;
+
 
 
 // Routes
@@ -37,6 +40,13 @@ const PORT = process.env.PORT || 5000;
 app.use("/api/auth",authRoutes);
 app.use("/api/projects",projectRoutes);
 app.use("/api/users",userRoutes);
+
+if (process.env.NODE_ENV === "production") {
+	app.use(express.static(path.join(__dirname, "frontend/build")));
+	app.get("*", (req, res) => {
+		res.sendFile(path.resolve(__dirname, "frontend", "build", "index.html"));
+	});
+}
 
 // Start Server
 // server
