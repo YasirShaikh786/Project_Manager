@@ -1,8 +1,11 @@
 import axios from "axios";
 import { create } from "zustand";
 import {jwtDecode} from "jwt-decode";
+import dotenv from 'dotenv';
 
-const API_URL = "https://project-manager-backend-daaq.onrender.com/api"; // Backend URL
+dotenv.config();
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 // Set up Axios instance
 const api = axios.create({
@@ -123,7 +126,7 @@ export const useAuthStore = create((set) => ({
   verifyEmail: async (code) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL}/auth/verify-email`, {
+      const response = await api.post(`/auth/verify-email`, {
         code,
       });
       // console.log("response", response);
@@ -205,7 +208,7 @@ export const useAuthStore = create((set) => ({
   forgotPassword: async (email) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL}/auth/forgot-password`, {
+      const response = await api.post(`/auth/forgot-password`, {
         email,
       });
       // console.log("response", response);
@@ -222,8 +225,7 @@ export const useAuthStore = create((set) => ({
   resetPassword: async (token, password) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(
-        `${API_URL}/auth/reset-password/${token}`,
+      const response = await api.post(`auth/reset-password/${token}`,
         { password }
       );
       set({ message: response.data.message, isLoading: false });
