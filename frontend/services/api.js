@@ -1,11 +1,11 @@
 import axios from "axios";
 import { create } from "zustand";
 import {jwtDecode} from "jwt-decode";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 
 dotenv.config();
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL ="https://project-manager-backend-nh9o.onrender.com/api";
 
 // Set up Axios instance
 const api = axios.create({
