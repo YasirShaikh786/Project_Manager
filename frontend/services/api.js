@@ -1,7 +1,6 @@
 import axios from "axios";
 import { create } from "zustand";
 import {jwtDecode} from "jwt-decode";
-import dotenv from "dotenv";
 
 dotenv.config();
 
