@@ -2,7 +2,6 @@ import axios from "axios";
 import { create } from "zustand";
 import {jwtDecode} from "jwt-decode";
 
-dotenv.config();
 
 const API_URL ="https://project-manager-backend-nh9o.onrender.com/api";
 
