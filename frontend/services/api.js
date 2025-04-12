@@ -121,28 +121,28 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-  verifyEmail: async (code) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await api.post(`/auth/verify-email`, {
-        code,
-      });
-      // console.log("response", response);
+  // verifyEmail: async (code) => {
+  //   set({ isLoading: true, error: null });
+  //   try {
+  //     const response = await api.post(`/auth/verify-email`, {
+  //       code,
+  //     });
+  //     // console.log("response", response);
 
-      set({
-        user: response.data.user,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-      return response.data;
-    } catch (error) {
-      set({
-        error: error.response.data.message || "Error verifying email",
-        isLoading: false,
-      });
-      throw error;
-    }
-  },
+  //     set({
+  //       user: response.data.user,
+  //       isAuthenticated: true,
+  //       isLoading: false,
+  //     });
+  //     return response.data;
+  //   } catch (error) {
+  //     set({
+  //       error: error.response.data.message || "Error verifying email",
+  //       isLoading: false,
+  //     });
+  //     throw error;
+  //   }
+  // },
   checkAuth: async () => {
     set({ isCheckingAuth: true });
     try {
@@ -203,38 +203,38 @@ export const useAuthStore = create((set) => ({
     }
   },
 
-  forgotPassword: async (email) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await api.post(`/auth/forgot-password`, {
-        email,
-      });
-      // console.log("response", response);
-      set({ message: response.data.message, isLoading: false });
-    } catch (error) {
-      set({
-        isLoading: false,
-        error:
-          error.response.data.message || "Error sending reset password email",
-      });
-      throw error;
-    }
-  },
-  resetPassword: async (token, password) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await api.post(`auth/reset-password/${token}`,
-        { password }
-      );
-      set({ message: response.data.message, isLoading: false });
-    } catch (error) {
-      set({
-        isLoading: false,
-        error: error.response.data.message || "Error resetting password",
-      });
-      throw error;
-    }
-  },
+  // forgotPassword: async (email) => {
+  //   set({ isLoading: true, error: null });
+  //   try {
+  //     const response = await api.post(`/auth/forgot-password`, {
+  //       email,
+  //     });
+  //     // console.log("response", response);
+  //     set({ message: response.data.message, isLoading: false });
+  //   } catch (error) {
+  //     set({
+  //       isLoading: false,
+  //       error:
+  //         error.response.data.message || "Error sending reset password email",
+  //     });
+  //     throw error;
+  //   }
+  // },
+  // resetPassword: async (token, password) => {
+  //   set({ isLoading: true, error: null });
+  //   try {
+  //     const response = await api.post(`auth/reset-password/${token}`,
+  //       { password }
+  //     );
+  //     set({ message: response.data.message, isLoading: false });
+  //   } catch (error) {
+  //     set({
+  //       isLoading: false,
+  //       error: error.response.data.message || "Error resetting password",
+  //     });
+  //     throw error;
+  //   }
+  // },
 }));
 
 // Excel API
