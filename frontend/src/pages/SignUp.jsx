@@ -22,7 +22,7 @@ const SignUp = () => {
 			await signup(email, password, username);
 			// console.log("just sending", { email, password, username });
 
-			navigate("/verify-email");
+			navigate("/profile");
 		} catch (error) {
 			console.log("Here is the error:", error.response?.data || error);
 		}

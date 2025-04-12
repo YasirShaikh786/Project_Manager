@@ -53,13 +53,6 @@ const Login = () => {
 				  required
 				/>
 			  </div>
-	
-			  <div className='flex items-center mb-6'>
-						<Link to='/forgot-password' className='text-sm text-blue-400 hover:underline'>
-							Forgot password?
-						</Link>
-					</div>
-	
 			  <button
 				type="submit"
 				className="w-full bg-blue-800 text-white py-2 rounded-md hover:bg-emerald-600 
