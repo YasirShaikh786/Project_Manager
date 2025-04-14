@@ -21,6 +21,15 @@ const ProjectForm = () => {
   
     const handleAddProject = async (e) => {
       e.preventDefault();
+      
+      // Get userId from localStorage
+      const userId = localStorage.getItem("userId");
+    
+      if (!userId) {
+        console.error("User not authenticated. Please log in.");
+        return;
+      }
+    
       try {
         const projectData = {
           projectName,
@@ -38,9 +47,11 @@ const ProjectForm = () => {
           progress,
           copyRight,
           applicationNo: copyRight === "Yes" ? applicationNo : "N/A",
+          userId,  // Add userId to the project data
         };
-        
+    
         const response = await addProject(projectData);
+    
         if (response) {
           setProjects([...projects, projectData]);
           setProjectName("");
@@ -63,6 +74,7 @@ const ProjectForm = () => {
         console.error('Failed to add project:', error);
       }
     };
+    
 
     return (
       <div className="bg-white p-8 rounded-xl shadow-lg mb-6">

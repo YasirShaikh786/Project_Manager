@@ -58,6 +58,7 @@ export const useAuthStore = create((set) => ({
       set({
         user: response.data.user,
         isAuthenticated: true,
+        isVerified: true,
         isLoading: false,
       });
     } catch (error) {
@@ -184,6 +185,11 @@ export const useAuthStore = create((set) => ({
           isAuthenticated: true,
           isCheckingAuth: false,
         });
+        if (!response.data.user.isVerified) {
+          set({ isAuthenticated: false });  // User is not verified, reset authentication
+          // Optionally redirect to verify email page
+          return;
+        }
       } else {
         localStorage.removeItem("token"); // Clear invalid token
         set({
@@ -201,7 +207,8 @@ export const useAuthStore = create((set) => ({
         error: null,
       });
     }
-  },
+  }
+  
 
   // forgotPassword: async (email) => {
   //   set({ isLoading: true, error: null });
@@ -258,10 +265,8 @@ export const downloadExcel = (division) =>
 
 export const addProject = async (newproject) => {
   try {
-    // console.log("newproject", newproject);
-    const userId = localStorage.getItem("userId"); // Get userId from localStorage
-    const response = await api.post(`/projects/addproject`, { ...newproject, userId });
-    // console.log("Full API Response:", response); // Logs the full response object
+    console.log("Creating Project with:", newproject); // ✅ Debug
+    const response = await api.post(`/projects/addproject`, newproject);
     return response.data.data;
   } catch (error) {
     console.error(
@@ -271,6 +276,7 @@ export const addProject = async (newproject) => {
     throw new Error(error.response?.data?.error || "Failed to create project");
   }
 };
+
 
 export const getProjects = async () => {
   try {

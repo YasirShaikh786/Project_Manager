@@ -21,13 +21,22 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(
-	cors({
-	  origin: process.env.CLIENT_URL, // Frontend URL
-	  credentials: true, // Allow cookies
-	  allowedHeaders: ['Authorization', 'Content-Type'],
-	})
-  );
+const allowedOrigins = [
+	'http://localhost:5173',
+	'http://localhost:3000',
+	'https://your-production-frontend.vercel.app'
+  ];
+  
+  app.use(cors({
+	origin: function (origin, callback) {
+	  if (!origin || allowedOrigins.includes(origin)) {
+		callback(null, true);
+	  } else {
+		callback(new Error('Not allowed by CORS'));
+	  }
+	},
+	credentials: true
+  }));
 
   app.use(bodyParser.urlencoded({ extended: true }));
 

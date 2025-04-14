@@ -4,9 +4,9 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Home from "./pages/Home";
 import ProfileInfo from "./pages/ProfileInfo";
-import EmailVerificationPage from "./pages/EmailVerificationPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+// import EmailVerificationPage from "./pages/EmailVerificationPage";
+// import ResetPasswordPage from "./pages/ResetPasswordPage";
+// import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import LoadingSpinner from "./components/LoadingSpinner";
 import { useAuthStore } from "../services/api.js";
 
@@ -21,17 +21,17 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (!user?.isVerified) {
-    return <Navigate to="/verify-email" replace />;
-  }
+  // if (!user?.isVerified) {
+  //   return <Navigate to="/verify-email" replace />;
+  // }
 
   return children;
 };
 
 const RedirectAuthenticatedUser = ({ children }) => {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
-  if (isAuthenticated && user.isVerified) {
+  if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
