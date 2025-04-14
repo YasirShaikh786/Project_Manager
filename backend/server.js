@@ -24,7 +24,7 @@ app.use(cookieParser());
 const allowedOrigins = [
 	'http://localhost:5173',
 	'http://localhost:3000',
-	'https://your-production-frontend.vercel.app'
+	'https://project-manager-iota-one.vercel.app'
   ];
   
   app.use(cors({
